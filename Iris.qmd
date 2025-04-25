@@ -1,0 +1,69 @@
+---
+title: "BT4BR - assignment 7"
+format: html
+editor: visual
+---
+
+## Loading libraries and data - task 1
+
+We start with loading libraries we are going to use - tidyr, dplyr and DT (for html tables) - and data set "iris". We take a quick look at the data to make sure that everything works. After that we transpose wide format to long format using function "pivot_longer" (iris -\> iris_long).
+
+```{r}
+#loading libraries and data set
+library(tidyr)
+library(dplyr)
+library(DT)
+data("iris")
+
+glimpse(iris) #quick look at our data
+
+iris_long <- iris %>% #converting to the long format 
+  pivot_longer(cols =  c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) , 
+               names_to = "Trait",
+               values_to = "Size" )
+
+glimpse(iris_long) #We look if everything is good
+```
+
+## Task 2: Answer the following questions:
+
+#### 1. What is the mean length and width of the sepal and petal of each species?
+
+To answer this question we are going to use function group by and summarize. Group by allows us to group data invisibly so we can later apply operations using summarize which generates statistics within each group id data is groupped
+
+#### 2. What is the largest and widest, petal and sepal, of virginica and versicolor species?
+
+To answer this question we also are going to use functions group_by and summarize. They work the same as previously stated. Our next step will be filtering the results, so we are going to only see virginica and versicolor species
+
+#### 3. For each species, for sepal and petal width and length, how many observations are above the mean?
+
+To answer this questions we are going to use group by and summarize (which are familiar to us form example above), function mutate which allows us to add new columns to our data set and functions sum. Function sum can add numbers but also logical values as in this case.
+
+```{r}
+#Question 1
+
+Mean_table <- iris_long %>%
+  group_by(Species, Trait) %>% 
+  summarize(mean_size = mean(Size)) #mean length and width of the sepal 
+#and petal of each species
+
+datatable(Mean_table)
+
+#Question 2
+Largest_petal_sepal <- iris_long %>% 
+  group_by(Species, Trait ) %>% 
+  summarize(max_value = max(Size)) %>% 
+  filter(Species != "setosa") #We are keeping everything which species is not setosa
+
+datatable(Largest_petal_sepal)
+
+#Question 3
+iris_long_2 <- iris_long %>% 
+  group_by(Species, Trait) %>%
+  mutate( Mean_size = mean(Size),  #adding new columns: Mean_Size and Difference
+  Difference = Size - Mean_size) %>% 
+  summarize(count_above_mean = sum(Difference > 0)) #counting how many records are above mean 
+
+datatable(iris_long_2)
+
+```
